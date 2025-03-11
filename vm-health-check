@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Threshold for declaring the VM health
+THRESHOLD=60
+
+# Function to check CPU utilization
+check_cpu() {
+    # Get the average CPU utilization over the past 1 minute
+    CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4}')
+    CPU_USAGE=${CPU_USAGE%.*} # Convert to integer
+    echo "CPU Usage: $CPU_USAGE%"
+    if [ "$CPU_USAGE" -ge "$THRESHOLD" ]; then
+        echo "CPU utilization is above threshold."
+        return 1
+    fi
+    return 0
+}
+
+# Function to check memory utilization
+check_memory() {
+    # Get the memory usage
+    MEM_TOTAL=$(free | grep Mem | awk '{print $2}')
+    MEM_USED=$(free | grep Mem | awk '{print $3}')
+    MEM_USAGE=$((MEM_USED * 100 / MEM_TOTAL))
+    echo "Memory Usage: $MEM_USAGE%"
+    if [ "$MEM_USAGE" -ge "$THRESHOLD" ]; then
+        echo "Memory utilization is above threshold."
+        return 1
+    fi
+    return 0
+}
+
+# Function to check disk space utilization
+check_disk() {
+    # Get the disk usage
+    DISK_USAGE=$(df / | grep / | awk '{ print $5}' | sed 's/%//g')
+    echo "Disk Usage: $DISK_USAGE%"
+    if [ "$DISK_USAGE" -ge "$THRESHOLD" ]; then
+        echo "Disk space utilization is above threshold."
+        return 1
+    fi
+    return 0
+}
+
+# Check the VM health
+check_cpu
+CPU_STATUS=$?
+check_memory
+MEM_STATUS=$?
+check_disk
+DISK_STATUS=$?
+
+# Determine the health status
+if [ "$CPU_STATUS" -eq 1 ] || [ "$MEM_STATUS" -eq 1 ] || [ "$DISK_STATUS" -eq 1 ]; then
+    echo "Health Status: Not Healthy"
+else
+    echo "Health Status: Healthy"
+fi
