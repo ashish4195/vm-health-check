@@ -1,0 +1,1 @@
+create a shell script where the script should analyzze the health of the virtual machine based on cpu, memory and disk space. if any of these three things are less than 60 percent utilizes, the script declares the state aas not healthy. Whereas if any of these parameters are more than 60 percent, script declare the health is Not healthy.
